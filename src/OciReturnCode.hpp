@@ -7,7 +7,7 @@
 //
 
 #include "OciError.hpp"
-#include <String.hpp>
+#include "String.hpp"
 #include <oci.h>
 
 #ifndef __oci_ReturnCode_hpp__

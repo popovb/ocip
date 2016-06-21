@@ -6,7 +6,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 //
 
-#include <String.hpp>
+#include "String.hpp"
 #include <oci.h>
 
 #ifndef __Oci_ErrorCode_hpp__
