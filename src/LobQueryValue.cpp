@@ -9,15 +9,14 @@
 #include "LobQueryValue.hpp"
 
 //////////////////////////////////////////////////////////////////
-/*
 db::oracle::lob::QueryValue::QueryValue
 (const oci::Type t, const LocatorPtr l):
-     QueryValue(t),
+     oracle::QueryValue(t),
      qb(l)
 {
      return;
 }
-*/
+
 db::oracle::lob::QueryValue::~QueryValue() {
 
      return;
