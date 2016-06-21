@@ -104,7 +104,6 @@ select DEPTNO, DNAME, LOC from DEPT
      std::cerr << "stmt4->define(3, LOC): " << ri16.string() << std::endl;
 
      auto ri17 = stmt4->execute(0);
-     //auto ri17 = stmt4->execute();
      std::cerr << "stmt4->execute(): " << ri17.string() << std::endl;
      if (ri17.isNoData()) {
 
@@ -167,13 +166,6 @@ select DEPTNO, DNAME, LOC from DEPT
 
      // #05
      //////////////////////////////////////////////////////////////////
-     /*
-       SQL> insert into dept values (60, 'DEV', 'MOSCOW') returning DEPTNO into :v;
-       SP2-0552: Bind variable "V" not declared.
-      */
-     //
-     //TODO
-     //
      String s5(R"(
 
 insert into DEPT values (60, 'DEV', 'MOSCOW') returning LOC into :v
@@ -202,12 +194,6 @@ insert into DEPT values (60, 'DEV', 'MOSCOW') returning LOC into :v
      std::cerr << ">" << OBV.getBuffer().string() << "<" << std::endl;
      auto ri21 = stmt3->execute();
      std::cerr << "stmt3->execute(): " << ri21.string() << std::endl;
-
-     // #06
-     //////////////////////////////////////////////////////////////////
-     //system("src/tests/begin.sh");
-     //system("src/tests/add_records.sh");
-     //////////////////////////////////////////////////////////////////
 
      // #07
      //////////////////////////////////////////////////////////////////
@@ -256,7 +242,6 @@ insert into DEPT values (60, 'DEV', 'MOSCOW') returning LOC into :v
 	  std::cerr << "lp->make_temp_blob(): " << ri29.string() << std::endl;
 	  auto ri30 = lp->openRW();
 	  std::cerr << "lp->openRW(): " << ri30.string() << std::endl;
-	  //src/tests/example.jpg
 	  std::ifstream is("src/tests/example.jpg", std::ifstream::binary);
 	  if (is) {
 	       if (! is.eof()) {
@@ -269,7 +254,6 @@ insert into DEPT values (60, 'DEV', 'MOSCOW') returning LOC into :v
 		    } else {
 
 			 auto prop = SSS.getErrorInfo();
-			 //std::cerr << "type: " << prop.type << std::endl;
 			 std::cerr << "str:  " << prop.str  << std::endl;
 		    }
 	       }
@@ -307,7 +291,6 @@ insert into DEPT values (60, 'DEV', 'MOSCOW') returning LOC into :v
 	  std::cerr << "lp->make_temp_clob(): " << ri29.string() << std::endl;
 	  auto ri30 = lp->openRW();
 	  std::cerr << "lp->openRW(): " << ri30.string() << std::endl;
-	  //src/tests/example.jpg
 	  std::ifstream is("src/tests/example.txt", std::ifstream::binary);
 	  if (is) {
 	       if (! is.eof()) {
@@ -320,7 +303,6 @@ insert into DEPT values (60, 'DEV', 'MOSCOW') returning LOC into :v
 		    } else {
 
 			 auto prop = SSS.getErrorInfo();
-			 //std::cerr << "type: " << prop.type << std::endl;
 			 std::cerr << "str:  " << prop.str  << std::endl;
 		    }
 	       }
@@ -385,9 +367,6 @@ INSERT INTO BLOBER_TEST (ID, BLOB) VALUES (4, :aa)
 	  std::cerr << "stmt200->bind(\":aa\", ibv200): " << ri200.string() << std::endl;
 	  auto ri201 = stmt200->execute();
 	  std::cerr << "stmt200->execute(): " << ri201.string() << std::endl;
-	  //
-	  //TODO
-	  //
      }
      //////////////////////////////////////////////////////////////////
 
