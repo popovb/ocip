@@ -1,0 +1,18 @@
+CREATE TABLE "BLOBER_TEST" 
+   ("ID"   NUMBER(6,0), 
+	"BLOB" BLOB 
+   )
+/
+
+CREATE TABLE "CLOBER_TEST" 
+   ("ID"   NUMBER(6,0), 
+	"CLOB" CLOB 
+   )
+/
+
+COMMIT
+/
+
+EXIT
+/
+
