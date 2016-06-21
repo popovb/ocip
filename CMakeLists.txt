@@ -43,14 +43,14 @@ target_include_directories(ocip PRIVATE ${OCI_INC_DIR})
 add_library(clntsh SHARED IMPORTED)
 set_target_properties(clntsh PROPERTIES IMPORTED_LOCATION ${OCI_LIB_DIR}/libclntsh.so)
 
-add_executable(1 "${TestDir}/1.cpp")
-target_link_libraries(1
+add_executable(ocip_ScottTiger_test "${TestDir}/1.cpp")
+target_link_libraries(ocip_ScottTiger_test
   ocip
   clntsh
   )
 
-target_include_directories(1 PRIVATE ${OCI_INC_DIR})
+target_include_directories(ocip_ScottTiger_test PRIVATE ${OCI_INC_DIR})
 
 target_compile_options(ocip PUBLIC -g -std=c++1y)
-target_compile_options(1    PUBLIC -g -std=c++1y)
+target_compile_options(ocip_ScottTiger_test PUBLIC -g -std=c++1y)
 ##################################################################
