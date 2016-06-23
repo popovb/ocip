@@ -22,12 +22,14 @@ namespace db {
 	  public:
 	       ReturnInfo(const oci::handle::Error&,
 			  const sword);
+	       ReturnInfo();
 
 	       operator bool() const;
 	       bool operator!() const;
 
 	       String string() const;
 	       bool isNoData() const;
+	       bool needData() const;
 
 	       oci::ReturnCode getReturnCode() const;
 	       oci::ErrorCode getErrorCode() const;

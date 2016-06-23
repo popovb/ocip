@@ -21,6 +21,12 @@ db::oracle::ReturnInfo::ReturnInfo(const oci::handle::Error& e,
      success = rcm.getSuccess();
 }
 
+db::oracle::ReturnInfo::ReturnInfo():
+     success(false)
+{
+     return;
+}
+
 db::oracle::ReturnInfo::operator bool() const {
 
      return success;
@@ -59,6 +65,12 @@ db::oracle::String db::oracle::ReturnInfo::string() const {
 bool db::oracle::ReturnInfo::isNoData() const {
 
      if (*return_code == OCI_NO_DATA) return true;
+     return false;
+}
+
+bool db::oracle::ReturnInfo::needData() const {
+
+     if (*return_code == OCI_NEED_DATA) return true;
      return false;
 }
 
