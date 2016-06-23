@@ -47,22 +47,48 @@ namespace db {
 		     char*,
 		     const size_t);
 
-		    ReturnInfo read
-		    (const oci::LobLocator&,
-		     const offset,
-		     char*,
-		     const size_t);
+		    ReturnInfo write_first(const oci::LobLocator&,
+					   const offset,
+					   const size_t,
+					   char*,
+					   const size_t);
 
-		    ub4 get_size() const;
+		    ReturnInfo write_next(const oci::LobLocator&,
+					  char*,
+					  const size_t);
+
+		    ReturnInfo write_last(const oci::LobLocator&,
+					  char*,
+					  const size_t);
+
+		    ReturnInfo read(const oci::LobLocator&,
+				    const offset,
+				    char*,
+				    const size_t);
+
+		    oraub8 get_bytes() const;
+		    oraub8 get_chars() const;
 
 	       private:
 		    const oci::handle::ServiceContext& sc;
 		    const oci::handle::Error& e;
-		    oraub8 size;
-		    oraub8 chn;
+
+		    oraub8 amount_bytes;
+		    oraub8 amount_chars;
 
 		    ReturnInfo open(const oci::LobLocator&,
 				    const ub1) const;
+
+		    ReturnInfo write_(const oci::LobLocator&,
+				      char*,
+				      const size_t,
+				      const ub1);
+		    static ub1 ONCE;
+		    static ub1 FIRST;
+		    static ub1 NEXT;
+		    static ub1 LAST;
+
+		    offset off;
 	       };
 //////////////////////////////////////////////////////////////////
 	  }
