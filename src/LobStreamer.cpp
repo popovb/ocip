@@ -33,36 +33,86 @@ bool db::oracle::lob::Streamer::operator<<(std::istream& i) {
 	  return false;
      }
 
-     i.seekg(0);
+     i.seekg(0, std::istream::end);
+     auto ssz = i.tellg();
+     i.seekg(0, std::istream::beg);
      offset of = 1;
+     bool first = true;
+     ReturnInfo ri;
+
      while (i) {
 
 	  i.read(&buffer[0], sizeb);
-	  if (i.eof()) {
-	       if (i.gcount() == 0) {
-
-		    if (i.good()) return true;
-		    break;
-	       }
-
-	       auto ri = locator->write(of, &buffer[0], i.gcount());
-	       if (!ri) {
-
-		    info = {ErrorType::oci, ri.string()};
-		    return false;
-	       }
-	       return true;
-	  }
-
 	  if (i.good()) {
-	       auto ri = locator->write(of, &buffer[0], sizeb);
+	       if (first) {
+		    if (i.gcount() == ssz) {
+
+			 ri = locator->write(of, &buffer[0], i.gcount());
+			 ssz -= i.gcount();
+
+		    } else {
+			 ri = locator->write_first(of, ssz,
+						   &buffer[0], i.gcount());
+			 ssz -= i.gcount();
+		    }
+		    first = false;
+
+	       } else {
+		    if (i.gcount() == ssz) {
+
+			 ri = locator->write_last(nullptr, i.gcount());
+			 ssz -= i.gcount();
+
+		    } else {
+
+			 ri = locator->write_next(&buffer[0], i.gcount());
+			 ssz -= i.gcount();
+		    }
+	       }
+
 	       if (!ri) {
 
 		    info = {ErrorType::oci, ri.string()};
 		    return false;
+
+	       } else {
+		    if (! ri.needData()) return true;
 	       }
-	       of += sizeb;
 	       continue;
+
+	  } else {
+	       if (i.eof()) {
+		    if (i.gcount() == 0) {
+			 if (first) {
+
+			      return true;
+
+			 } else {
+
+			      info = {ErrorType::oci, ri.string()};
+			      return false;
+			 }
+		    }
+
+		    if (first) {
+
+			 ri = locator->write(of, &buffer[0], i.gcount());
+			 ssz -= i.gcount();
+			 first = false;
+
+		    } else {
+
+			 ri = locator->write_last(&buffer[0], i.gcount());
+			 ssz -= i.gcount();
+		    }
+
+		    if (!ri) {
+
+			 info = {ErrorType::oci, ri.string()};
+			 return false;
+		    }
+		    return true;
+	       }
 	  }
 	  break;
      }
