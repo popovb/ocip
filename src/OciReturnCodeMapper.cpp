@@ -41,12 +41,14 @@ void db::oracle::oci::ReturnCodeMapper::process() {
      fill_strings();
 }
 
-db::oracle::oci::ReturnCode db::oracle::oci::ReturnCodeMapper::getReturnCode() const {
+db::oracle::oci::ReturnCode
+db::oracle::oci::ReturnCodeMapper::getReturnCode() const {
 
      return ReturnCode(ret, code_string, code_string_extra);
 }
 
-db::oracle::oci::ErrorCode db::oracle::oci::ReturnCodeMapper::getErrorCode() const {
+db::oracle::oci::ErrorCode
+db::oracle::oci::ReturnCodeMapper::getErrorCode() const {
 
      return ErrorCode(errcode);
 }
@@ -105,6 +107,12 @@ void db::oracle::oci::ReturnCodeMapper::is_it_success() {
      }
 
      if (ret == OCI_SUCCESS_WITH_INFO) {
+
+	  success = true;
+	  return;
+     }
+
+     if (ret == OCI_NEED_DATA) {
 
 	  success = true;
 	  return;
