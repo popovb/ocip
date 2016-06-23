@@ -48,6 +48,18 @@ namespace db {
 		    ReturnInfo write(const offset,
 				     char*,
 				     const size_t);
+
+		    ReturnInfo write_first(const offset,
+					   const size_t,
+					   char*,
+					   const size_t);
+
+		    ReturnInfo write_next(char*,
+					  const size_t);
+
+		    ReturnInfo write_last(char*,
+					  const size_t);
+
 		    ReturnInfo read(const offset,
 				    char*,
 				    const size_t);
