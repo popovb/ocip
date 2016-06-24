@@ -37,3 +37,4 @@ Makefile
 CMakeFiles/
 head.txt
 ocip_ScottTiger_test
+*out.txt
