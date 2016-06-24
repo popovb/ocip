@@ -47,7 +47,7 @@ bool db::oracle::lob::Streamer::operator<<(std::istream& i) {
 	       if (first) {
 		    if (i.gcount() == ssz) {
 
-			 ri = locator->write(of, &buffer[0], i.gcount());
+			 ri = locator->write_once(of, &buffer[0], i.gcount());
 			 ssz -= i.gcount();
 
 		    } else {
@@ -96,7 +96,7 @@ bool db::oracle::lob::Streamer::operator<<(std::istream& i) {
 
 		    if (first) {
 
-			 ri = locator->write(of, &buffer[0], i.gcount());
+			 ri = locator->write_once(of, &buffer[0], i.gcount());
 			 ssz -= i.gcount();
 			 first = false;
 
@@ -123,28 +123,43 @@ bool db::oracle::lob::Streamer::operator<<(std::istream& i) {
 bool db::oracle::lob::Streamer::operator>>(std::ostream& o) {
 
      clear_info();
-     if (!o) {
+     if (!o.good()) {
 
-	  info = {ErrorType::iostream, "input stream error"};
+	  info = {ErrorType::iostream, "output stream error"};
 	  return false;
      }
 
      offset of = 1;
-     auto ri = locator->read(of, &buffer[0], sizeb);
-     while (ri) {
+     ReturnInfo ri;
+     ri = locator->read_first(of, &buffer[0], sizeb);
+     if (!ri) {
 
-	  auto truesize = locator->get_size();
-	  if (truesize == 0) return true;
-	  o.write(&buffer[0], truesize);
-	  if (o) {
-
-	       of += truesize;
-	       ri = locator->read(of, &buffer[0], sizeb);
-	       continue;
-	  }
-	  info = {ErrorType::iostream, "input stream error"};
+	  info = {ErrorType::oci, ri.string()};
 	  return false;
      }
+
+     o.write(&buffer[0], locator->bytes());
+     if (!o.good()) {
+
+	  info = {ErrorType::iostream, "output stream error"};
+	  return false;
+     }
+
+     while (ri.needData()) {
+
+	  ri = locator->read_next(&buffer[0], sizeb);
+	  if (ri) {
+
+	       o.write(&buffer[0], locator->bytes());
+	       if (!o.good()) {
+
+		    info = {ErrorType::iostream, "output stream error"};
+		    return false;
+	       }
+	  } else break;
+     }
+
+     if(ri) return true;
      info = {ErrorType::oci, ri.string()};
      return false;
 }
