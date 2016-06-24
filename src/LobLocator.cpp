@@ -64,11 +64,11 @@ db::oracle::lob::Locator::trim() const {
 }
 
 db::oracle::ReturnInfo
-db::oracle::lob::Locator::write(const offset o,
-				char* p,
-				const size_t s) {
+db::oracle::lob::Locator::write_once(const offset o,
+				     char* p,
+				     const size_t s) {
 
-     return io.write(*lob_locator, o, p, s);
+     return io.write_once(*lob_locator, o, p, s);
 }
 
 db::oracle::ReturnInfo
@@ -95,16 +95,36 @@ db::oracle::lob::Locator::write_last(char* p,
 }
 
 db::oracle::ReturnInfo
-db::oracle::lob::Locator::read(const offset o,
-			       char* p,
-			       const size_t s) {
+db::oracle::lob::Locator::read_once(const offset o,
+				    char* p,
+				    const size_t s) {
 
-     return io.read(*lob_locator, o, p, s);
+     return io.read_once(*lob_locator, o, p, s);
 }
 
-size_t db::oracle::lob::Locator::get_size() const {
+db::oracle::ReturnInfo
+db::oracle::lob::Locator::read_first(const offset o,
+				     char* p,
+				     const size_t s) {
+
+     return io.read_first(*lob_locator, o, p, s);
+}
+
+db::oracle::ReturnInfo
+db::oracle::lob::Locator::read_next(char* p,
+				    const size_t s) {
+
+     return io.read_next(*lob_locator, p, s);
+}
+
+size_t db::oracle::lob::Locator::bytes() const {
 
      return io.get_bytes();
+}
+
+size_t db::oracle::lob::Locator::chars() const {
+
+     return io.get_chars();
 }
 
 void db::oracle::lob::Locator::init_locator() {

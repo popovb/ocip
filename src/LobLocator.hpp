@@ -39,15 +39,15 @@ namespace db {
 		    ReturnInfo make_temp_blob() const;
 		    ReturnInfo make_temp_clob() const;
 
-		    void close() const;
 		    ReturnInfo openRO() const;
 		    ReturnInfo openRW() const;
+		    void close() const;
 
 		    ReturnInfo trim() const;
 
-		    ReturnInfo write(const offset,
-				     char*,
-				     const size_t);
+		    ReturnInfo write_once(const offset,
+					  char*,
+					  const size_t);
 
 		    ReturnInfo write_first(const offset,
 					   const size_t,
@@ -60,11 +60,18 @@ namespace db {
 		    ReturnInfo write_last(char*,
 					  const size_t);
 
-		    ReturnInfo read(const offset,
-				    char*,
-				    const size_t);
+		    ReturnInfo read_once(const offset,
+					 char*,
+					 const size_t);
 
-		    size_t get_size() const;
+		    ReturnInfo read_first(const offset,
+					  char*,
+					  const size_t);
+
+		    ReturnInfo read_next(char*,
+					 const size_t);
+		    size_t chars() const;
+		    size_t bytes() const;
 
 	       private:
 		    const Environment& oe;
