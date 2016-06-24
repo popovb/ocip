@@ -41,11 +41,10 @@ namespace db {
 		    ReturnInfo trim
 		    (const oci::LobLocator&) const;
 
-		    ReturnInfo write
-		    (const oci::LobLocator&,
-		     const offset,
-		     char*,
-		     const size_t);
+		    ReturnInfo write_once(const oci::LobLocator&,
+					  const offset,
+					  char*,
+					  const size_t);
 
 		    ReturnInfo write_first(const oci::LobLocator&,
 					   const offset,
@@ -61,10 +60,19 @@ namespace db {
 					  char*,
 					  const size_t);
 
-		    ReturnInfo read(const oci::LobLocator&,
-				    const offset,
-				    char*,
-				    const size_t);
+		    ReturnInfo read_once(const oci::LobLocator&,
+					 const offset,
+					 char*,
+					 const size_t);
+
+		    ReturnInfo read_first(const oci::LobLocator&,
+					  const offset,
+					  char*,
+					  const size_t);
+
+		    ReturnInfo read_next(const oci::LobLocator&,
+					 char*,
+					 const size_t);
 
 		    oraub8 get_bytes() const;
 		    oraub8 get_chars() const;
@@ -83,6 +91,11 @@ namespace db {
 				      char*,
 				      const size_t,
 				      const ub1);
+
+		    ReturnInfo read_(const oci::LobLocator&,
+				     char*,
+				     const size_t,
+				     const ub1);
 		    static ub1 ONCE;
 		    static ub1 FIRST;
 		    static ub1 NEXT;

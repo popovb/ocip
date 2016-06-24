@@ -65,17 +65,15 @@ db::oracle::lob::IO::trim
 }
 
 db::oracle::ReturnInfo
-db::oracle::lob::IO::write(const oci::LobLocator& l,
-			   const offset o,
-			   char* p,
-			   const size_t s) {
+db::oracle::lob::IO::write_once(const oci::LobLocator& l,
+				const offset o,
+				char* p,
+				const size_t s) {
      amount_chars = 0;
      amount_bytes = s;
      off = o;
      return write_(l, p, s, ONCE);
 }
-
-#include <iostream>
 
 db::oracle::ReturnInfo
 db::oracle::lob::IO::write_first(const oci::LobLocator& l,
@@ -85,8 +83,19 @@ db::oracle::lob::IO::write_first(const oci::LobLocator& l,
 				 const size_t s) {
      amount_chars = 0;
      amount_bytes = as;
-     off = 1;
+     off = o;
      return write_(l, p, s, FIRST);
+}
+
+db::oracle::ReturnInfo
+db::oracle::lob::IO::read_first(const oci::LobLocator& l,
+				const offset o,
+				char* p,
+				const size_t s) {
+     amount_chars = 0;
+     amount_bytes = 0;
+     off = o;
+     return read_(l, p, s, FIRST);
 }
 
 db::oracle::ReturnInfo
@@ -99,6 +108,15 @@ db::oracle::lob::IO::write_next(const oci::LobLocator& l,
 }
 
 db::oracle::ReturnInfo
+db::oracle::lob::IO::read_next(const oci::LobLocator& l,
+			       char* p,
+			       const size_t s) {
+     amount_chars = 0;
+     amount_bytes = 0;
+     return read_(l, p, s, NEXT);
+}
+
+db::oracle::ReturnInfo
 db::oracle::lob::IO::write_last(const oci::LobLocator& l,
 				char* p,
 				const size_t s) {
@@ -108,32 +126,14 @@ db::oracle::lob::IO::write_last(const oci::LobLocator& l,
 }
 
 db::oracle::ReturnInfo
-db::oracle::lob::IO::read(const oci::LobLocator& l,
-			  const offset o,
-			  char* p,
-			  const size_t s) {
+db::oracle::lob::IO::read_once(const oci::LobLocator& l,
+			       const offset o,
+			       char* p,
+			       const size_t s) {
      amount_chars = 0;
      amount_bytes = s;
-     ReturnInfo ri(
-	  e,
-	  OCILobRead2(
-	       (*sc).ptr,
-	       *e,
-	       (*l).ptr,
-	       (oraub8*)&amount_bytes,
-	       (oraub8*)&amount_chars,
-	       (oraub8)o,
-	       (void*)p,
-	       (oraub8)s,
-	       (ub1)OCI_ONE_PIECE,
-	       (void*)NULL,
-	       (sb4)NULL,
-	       (ub2)0,
-	       (ub1)SQLCS_IMPLICIT
-	       )
-	  );
-     std::cerr << std::endl << ri.string() << " bytes=" << amount_bytes << std::endl;
-     return ri;
+     off = o;
+     return read_(l, p, s, ONCE);
 }
 
 oraub8 db::oracle::lob::IO::get_bytes() const {
@@ -147,10 +147,8 @@ oraub8 db::oracle::lob::IO::get_chars() const {
 }
 
 db::oracle::ReturnInfo
-db::oracle::lob::IO::open
-(const oci::LobLocator& l,
- const ub1 mode) const {
-
+db::oracle::lob::IO::open(const oci::LobLocator& l,
+			  const ub1 mode) const {
      ReturnInfo ri(
 	  e,
 	  OCILobOpen(
@@ -171,6 +169,32 @@ db::oracle::lob::IO::write_(const oci::LobLocator& l,
      ReturnInfo ri(
 	  e,
 	  OCILobWrite2(
+	       (*sc).ptr,
+	       *e,
+	       (*l).ptr,
+	       (oraub8*)&amount_bytes,
+	       (oraub8*)&amount_chars,
+	       (oraub8)off,
+	       (void*)p,
+	       (oraub8)s,
+	       (ub1)mode,
+	       (void*)NULL,
+	       (sb4)NULL,
+	       (ub2)0,
+	       (ub1)SQLCS_IMPLICIT
+	       )
+	  );
+     return ri;
+}
+
+db::oracle::ReturnInfo
+db::oracle::lob::IO::read_(const oci::LobLocator& l,
+			    char* p,
+			    const size_t s,
+			    const ub1 mode) {
+     ReturnInfo ri(
+	  e,
+	  OCILobRead2(
 	       (*sc).ptr,
 	       *e,
 	       (*l).ptr,
