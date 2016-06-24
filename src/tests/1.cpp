@@ -163,7 +163,6 @@ select DEPTNO, DNAME, LOC from DEPT
         30|SALES         |CHICAGO
         40|OPERATIONS    |BOSTON
      */
-
      // #05
      //////////////////////////////////////////////////////////////////
      String s5(R"(
@@ -216,19 +215,19 @@ insert into DEPT values (60, 'DEV', 'MOSCOW') returning LOC into :v
 
 	  //write
 	  std::string example("ХуепутыХуепуты");
-	  auto ri27 = lp->write(1, (char*)example.c_str(), example.size());
+	  auto ri27 = lp->write_once(1, (char*)example.c_str(), example.size());
 	  std::cerr <<
 	       "lp->write(1, example.c_str(), example.size()): " <<
 	       ri27.string() <<
 	       std::endl;
-	  std::cerr << "size write: " << lp->get_size() << std::endl;
+	  std::cerr << "size write: " << lp->bytes() << std::endl;
 
 	  //read
 	  std::vector<char> bu(256, '\0');
-	  auto ri28 = lp->read(1, &bu[0], 255);
+	  auto ri28 = lp->read_once(1, &bu[0], 255);
 	  std::cerr << "lp->read(1, &bu[0], 255): " << ri28.string() << std::endl;
 	  std::cerr << "out after read: " <<  std::string(&bu[0]) << std::endl;
-	  std::cerr << "size read: " << lp->get_size() << std::endl;
+	  std::cerr << "size read: " << lp->bytes() << std::endl;
 	  lp->close();
      }
      //////////////////////////////////////////////////////////////////
@@ -333,6 +332,7 @@ insert into DEPT values (60, 'DEV', 'MOSCOW') returning LOC into :v
 
      system("src/tests/begin.sh");
      system("src/tests/add_records.sh");
+
      // #11
      //////////////////////////////////////////////////////////////////
      {
@@ -369,12 +369,10 @@ INSERT INTO BLOBER_TEST (ID, BLOB) VALUES (4, :aa)
 	  std::cerr << "stmt200->execute(): " << ri201.string() << std::endl;
      }
      //////////////////////////////////////////////////////////////////
-
      // #12
      //////////////////////////////////////////////////////////////////
      OD.disconnect();
      //////////////////////////////////////////////////////////////////
-
      // #13
      //////////////////////////////////////////////////////////////////
      {
@@ -435,6 +433,7 @@ SELECT BLOB FROM BLOBER_TEST WHERE ID = 4
 	  auto ri30 = lp->openRW();
 	  std::cerr << "lp->openRW(): " << ri30.string() << std::endl;
 	  std::ifstream is("src/tests/example.txt", std::ifstream::binary);
+	  //std::ifstream is("src/tests/history2.txt", std::ifstream::binary);
 	  if (is) {
 
 	       db::oracle::lob::Streamer SSS(lp);
@@ -459,6 +458,7 @@ INSERT INTO CLOBER_TEST (ID, CLOB) VALUES (5, :aa)
 	  std::cerr << "stmt200->bind(\"aa\", ibv200): " << ri200.string() << std::endl;
 	  auto ri201 = stmt200->execute();
 	  std::cerr << "stmt200->execute(): " << ri201.string() << std::endl;
+	  OD.commit();
 	  OD.disconnect();
      }
      //////////////////////////////////////////////////////////////////
@@ -542,6 +542,183 @@ SELECT CLOB FROM CLOBER_TEST WHERE ID = 3
 	  OD.disconnect();
      }
      //////////////////////////////////////////////////////////////////
+
+     // #17
+     //////////////////////////////////////////////////////////////////
+     {
+	  OD.connect("scott", "tiger", "asp");
+	  db::oracle::lob::LocatorPtr lp;
+	  lp = OD.make_locator();
+	  auto ri29 = lp->make_temp_clob();
+	  std::cerr << "lp->make_temp_clob(): " << ri29.string() << std::endl;
+	  auto ri30 = lp->openRW();
+	  std::cerr << "lp->openRW(): " << ri30.string() << std::endl;
+	  std::ifstream is("src/tests/Text.txt", std::ifstream::binary);
+	  if (is) {
+
+	       db::oracle::lob::Streamer SSS(lp);
+	       if (SSS << is) {
+
+		    std::cerr << "SSS << is OK" << std::endl;
+
+	       } else {
+
+		    auto prop = SSS.getErrorInfo();
+		    std::cerr << "str:  " << prop.str  << std::endl;
+	       }
+	  }
+	  lp->close();
+
+	  String s200(R"(
+INSERT INTO CLOBER_TEST (ID, CLOB) VALUES (6, :aa)
+)");
+	  auto stmt200 = OD.prepare(s200);
+	  db::oracle::lob::ClobBindValue ibv200(lp);
+	  auto ri200 = stmt200->bind("aa", ibv200);
+	  std::cerr << "stmt200->bind(\"aa\", ibv200): " << ri200.string() << std::endl;
+	  auto ri201 = stmt200->execute();
+	  std::cerr << "stmt200->execute(): " << ri201.string() << std::endl;
+	  OD.commit();
+	  OD.disconnect();
+     }
+     //////////////////////////////////////////////////////////////////
+
+     // #18
+     //////////////////////////////////////////////////////////////////
+     {
+	  OD.connect("scott", "tiger", "asp");
+	  String s200(R"(
+SELECT CLOB FROM CLOBER_TEST WHERE ID = 6
+)");
+	  auto stmt200 = OD.prepare(s200);
+	  db::oracle::lob::LocatorPtr lp;
+	  lp = OD.make_locator();
+	  db::oracle::lob::ClobQueryValue CLOB(lp);
+	  auto ri14 = stmt200->define(1, CLOB);
+	  std::cerr << "stmt200->define(1): " <<
+	       ri14.string() << std::endl;
+	  auto ri17 = stmt200->execute();
+	  std::cerr << "stmt200->execute(): " << ri17.string() << std::endl;
+	  //
+	  if (CLOB.getIndicator()) {
+
+	       std::cerr << "CLOB.getIndicator() NOT NULL" << std::endl;
+	       auto ri31 = lp->openRO();
+	       std::cerr << "lp->openRO(): " << ri31.string() << std::endl;
+	       std::ofstream os("src/tests/Text_out.txt", std::ios::binary | std::ios::trunc);
+	       if (os) {
+		    if (! os.eof()) {
+
+			 std::cerr << "OUT STREAM OK!" << std::endl;
+			 db::oracle::lob::Streamer SSS(lp);
+			 if (SSS >> os) {
+
+			      std::cerr << "SSS >> os OK" << std::endl;
+
+			 } else {
+
+			      auto prop = SSS.getErrorInfo();
+			      std::cerr << "str:  " << prop.str  << std::endl;
+			 }
+		    }
+	       }
+	  } else {
+
+	       std::cerr << "CLOB.getIndicator() BAD --> ERROR!" << std::endl;
+	  }
+	  lp->close();
+	  OD.disconnect();
+     }
+     //////////////////////////////////////////////////////////////////
+
+     // #18
+     //////////////////////////////////////////////////////////////////
+     {
+	  OD.connect("scott", "tiger", "asp");
+	  db::oracle::lob::LocatorPtr lp;
+	  lp = OD.make_locator();
+	  auto ri29 = lp->make_temp_clob();
+	  std::cerr << "lp->make_temp_clob(): " << ri29.string() << std::endl;
+	  auto ri30 = lp->openRW();
+	  std::cerr << "lp->openRW(): " << ri30.string() << std::endl;
+	  std::ifstream is("src/tests/history.txt", std::ifstream::binary);
+	  if (is) {
+
+	       db::oracle::lob::Streamer SSS(lp);
+	       if (SSS << is) {
+
+		    std::cerr << "SSS << is OK" << std::endl;
+
+	       } else {
+
+		    auto prop = SSS.getErrorInfo();
+		    std::cerr << "str:  " << prop.str  << std::endl;
+	       }
+	  }
+	  lp->close();
+
+	  String s200(R"(
+INSERT INTO CLOBER_TEST (ID, CLOB) VALUES (7, :aa)
+)");
+	  auto stmt200 = OD.prepare(s200);
+	  db::oracle::lob::ClobBindValue ibv200(lp);
+	  auto ri200 = stmt200->bind("aa", ibv200);
+	  std::cerr << "stmt200->bind(\"aa\", ibv200): " << ri200.string() << std::endl;
+	  auto ri201 = stmt200->execute();
+	  std::cerr << "stmt200->execute(): " << ri201.string() << std::endl;
+	  OD.commit();
+	  OD.disconnect();
+     }
+     //////////////////////////////////////////////////////////////////
+
+     // #19
+     //////////////////////////////////////////////////////////////////
+     {
+	  OD.connect("scott", "tiger", "asp");
+	  String s200(R"(
+SELECT CLOB FROM CLOBER_TEST WHERE ID = 7
+)");
+	  auto stmt200 = OD.prepare(s200);
+	  db::oracle::lob::LocatorPtr lp;
+	  lp = OD.make_locator();
+	  db::oracle::lob::ClobQueryValue CLOB(lp);
+	  auto ri14 = stmt200->define(1, CLOB);
+	  std::cerr << "stmt200->define(1): " <<
+	       ri14.string() << std::endl;
+	  auto ri17 = stmt200->execute();
+	  std::cerr << "stmt200->execute(): " << ri17.string() << std::endl;
+	  //
+	  if (CLOB.getIndicator()) {
+
+	       std::cerr << "CLOB.getIndicator() NOT NULL" << std::endl;
+	       auto ri31 = lp->openRO();
+	       std::cerr << "lp->openRO(): " << ri31.string() << std::endl;
+	       std::ofstream os("src/tests/history_out.txt", std::ios::binary | std::ios::trunc);
+	       if (os) {
+		    if (! os.eof()) {
+
+			 std::cerr << "OUT STREAM OK!" << std::endl;
+			 db::oracle::lob::Streamer SSS(lp);
+			 if (SSS >> os) {
+
+			      std::cerr << "SSS >> os OK" << std::endl;
+
+			 } else {
+
+			      auto prop = SSS.getErrorInfo();
+			      std::cerr << "str:  " << prop.str  << std::endl;
+			 }
+		    }
+	       }
+	  } else {
+
+	       std::cerr << "CLOB.getIndicator() BAD --> ERROR!" << std::endl;
+	  }
+	  lp->close();
+	  OD.disconnect();
+     }
+     //////////////////////////////////////////////////////////////////
+
      system("src/tests/end.sh");
      system("md5sum src/tests/example.jpg");
      system("md5sum src/tests/out.jpg");
@@ -549,5 +726,9 @@ SELECT CLOB FROM CLOBER_TEST WHERE ID = 3
      system("md5sum src/tests/example.txt");
      system("md5sum src/tests/out.txt");
      system("md5sum src/tests/out2.txt");
+     system("md5sum src/tests/Text.txt");
+     system("md5sum src/tests/Text_out.txt");
+     system("md5sum src/tests/history.txt");
+     system("md5sum src/tests/history_out.txt");
      return 0;
 }
