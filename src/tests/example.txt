@@ -1,4 +1,4 @@
-4,4M	/libx32
+л4,4M	/libx32
 8,2k	/srv/tftp/new/pxelinux.cfg
 18M	/srv/tftp/new
 8,2k	/srv/tftp/ltsp/i386/pxelinux.cfg
