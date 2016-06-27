@@ -20,9 +20,8 @@ db::oracle::Driver::~Driver() {
 }
 
 void db::oracle::Driver::connect(const UserName un,
-			       const Password p,
-			       const ConnectString cs) {
-
+				 const Password p,
+				 const ConnectString cs) {
      oc.Connect(oe, un, p, cs);
 }
 
