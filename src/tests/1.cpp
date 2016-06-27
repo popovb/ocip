@@ -1,8 +1,7 @@
 #include <Driver.hpp>
-#include <BindValue.hpp>
 #include <LobStreamer.hpp>
-#include <LobBindValue.hpp>
 #include <LobQueryValue.hpp>
+#include <Error.hpp>
 #include <String.hpp>
 #include <iostream>
 #include <vector>
@@ -14,8 +13,18 @@ int main() {
      // #01
      //////////////////////////////////////////////////////////////////
      using namespace db::oracle;
-     Driver OD;
-     OD.connect("scott", "tiger", "asp");
+     Driver* OD;
+     try {
+	  OD = new Driver;
+
+     } catch(Error& e) {
+
+	  std::cerr << e.what() << std::endl;
+	  exit(1);
+     }
+
+     //Driver OD;
+     OD->connect("scott", "tiger", "asp");
      //////////////////////////////////////////////////////////////////
 
      // #02
@@ -23,10 +32,19 @@ int main() {
      String s1(R"(
 INSERT INTO DEPT (DEPTNO, DNAME, LOC) VALUES (50, 'DEV', 'MOSCOW')
 )");
-     auto stmt = OD.prepare(s1);
+     StatementPtr stmt;
+     try {
+	  stmt = OD->prepare(s1);
+
+     } catch (Error& e) {
+
+	  std::cerr << e.what() << std::endl;
+	  exit(1);
+     }
+
      auto ri1 = stmt->execute();
      std::cerr << "stmt->execute(): " << ri1.string() << std::endl;
-     auto ri2 = OD.rollback();
+     auto ri2 = OD->rollback();
      std::cerr << "rollback: " << ri2.string() << std::endl;
      //////////////////////////////////////////////////////////////////
 
@@ -35,7 +53,7 @@ INSERT INTO DEPT (DEPTNO, DNAME, LOC) VALUES (50, 'DEV', 'MOSCOW')
      String s2(R"(
 INSERT INTO DEPT (DEPTNO, DNAME, LOC) VALUES (:1, :2, :3)
 )");
-     auto stmt2 = OD.prepare(s2);
+     auto stmt2 = OD->prepare(s2);
      InStringBindValue bv1("50");
      InStringBindValue bv2("DEV");
      InStringBindValue bv3("MOSCOW");
@@ -79,7 +97,7 @@ INSERT INTO DEPT (DEPTNO, DNAME, LOC) VALUES (:1, :2, :3)
      String s3(R"(
 DELETE FROM DEPT WHERE DEPTNO >= 50
  )");
-     auto stmt3 = OD.prepare(s3);
+     auto stmt3 = OD->prepare(s3);
      auto ri13 = stmt3->execute();
      std::cerr << "stmt3->execute(): " << ri13.string() << std::endl;
      //////////////////////////////////////////////////////////////////
@@ -93,7 +111,7 @@ DELETE FROM DEPT WHERE DEPTNO >= 50
      String s4(R"(
 select DEPTNO, DNAME, LOC from DEPT
  )");
-     auto stmt4 = OD.prepare(s4);
+     auto stmt4 = OD->prepare(s4);
      auto ri14 = stmt4->define(1, DEPTNO);
      std::cerr << "stmt4->define(1, DEPTNO): " << ri14.string() << std::endl;
 
@@ -170,7 +188,7 @@ select DEPTNO, DNAME, LOC from DEPT
 insert into DEPT values (60, 'DEV', 'MOSCOW') returning LOC into :v
 
  )");
-     auto stmt5 = OD.prepare(s5);
+     auto stmt5 = OD->prepare(s5);
      OutStringBindValue OBV(150);
      OBV.getBuffer().clear();
      auto ri19 = stmt5->bind("v", OBV);
@@ -198,7 +216,7 @@ insert into DEPT values (60, 'DEV', 'MOSCOW') returning LOC into :v
      //////////////////////////////////////////////////////////////////
      {
 	  db::oracle::lob::LocatorPtr lp;
-	  lp = OD.make_locator();
+	  lp = OD->make_locator();
 	  auto ri22 = lp->make_temp_blob();
 	  std::cerr <<
 	       "lp->make_temp_blob(): " << ri22.string() << std::endl;
@@ -236,7 +254,7 @@ insert into DEPT values (60, 'DEV', 'MOSCOW') returning LOC into :v
      //////////////////////////////////////////////////////////////////
      {
 	  db::oracle::lob::LocatorPtr lp;
-	  lp = OD.make_locator();
+	  lp = OD->make_locator();
 	  auto ri29 = lp->make_temp_blob();
 	  std::cerr << "lp->make_temp_blob(): " << ri29.string() << std::endl;
 	  auto ri30 = lp->openRW();
@@ -285,7 +303,7 @@ insert into DEPT values (60, 'DEV', 'MOSCOW') returning LOC into :v
      //////////////////////////////////////////////////////////////////
      {
 	  db::oracle::lob::LocatorPtr lp;
-	  lp = OD.make_locator();
+	  lp = OD->make_locator();
 	  auto ri29 = lp->make_temp_clob();
 	  std::cerr << "lp->make_temp_clob(): " << ri29.string() << std::endl;
 	  auto ri30 = lp->openRW();
@@ -337,7 +355,7 @@ insert into DEPT values (60, 'DEV', 'MOSCOW') returning LOC into :v
      //////////////////////////////////////////////////////////////////
      {
 	  db::oracle::lob::LocatorPtr lp;
-	  lp = OD.make_locator();
+	  lp = OD->make_locator();
 	  auto ri29 = lp->make_temp_blob();
 	  std::cerr << "lp->make_temp_blob(): " << ri29.string() << std::endl;
 	  auto ri30 = lp->openRW();
@@ -361,7 +379,7 @@ insert into DEPT values (60, 'DEV', 'MOSCOW') returning LOC into :v
 	  String s200(R"(
 INSERT INTO BLOBER_TEST (ID, BLOB) VALUES (4, :aa)
 )");
-	  auto stmt200 = OD.prepare(s200);
+	  auto stmt200 = OD->prepare(s200);
 	  db::oracle::lob::BlobBindValue ibv200(lp);
 	  auto ri200 = stmt200->bind(":aa", ibv200);
 	  std::cerr << "stmt200->bind(\":aa\", ibv200): " << ri200.string() << std::endl;
@@ -371,18 +389,18 @@ INSERT INTO BLOBER_TEST (ID, BLOB) VALUES (4, :aa)
      //////////////////////////////////////////////////////////////////
      // #12
      //////////////////////////////////////////////////////////////////
-     OD.disconnect();
+     OD->disconnect();
      //////////////////////////////////////////////////////////////////
      // #13
      //////////////////////////////////////////////////////////////////
      {
-	  OD.connect("scott", "tiger", "asp");
+	  OD->connect("scott", "tiger", "asp");
 	  String s200(R"(
 SELECT BLOB FROM BLOBER_TEST WHERE ID = 4
 )");
-	  auto stmt200 = OD.prepare(s200);
+	  auto stmt200 = OD->prepare(s200);
 	  db::oracle::lob::LocatorPtr lp;
-	  lp = OD.make_locator();
+	  lp = OD->make_locator();
 	  db::oracle::lob::BlobQueryValue BLOB(lp);
 	  db::oracle::lob::ClobQueryValue CLOB(lp);
 	  auto ri14 = stmt200->define(1, BLOB);
@@ -418,16 +436,16 @@ SELECT BLOB FROM BLOBER_TEST WHERE ID = 4
 	       std::cerr << "BLOB.getIndicator() NULL --> ERROR!" << std::endl;
 	  }
 	  lp->close();
-	  OD.disconnect();
+	  OD->disconnect();
      }
      //////////////////////////////////////////////////////////////////
 
      // #14
      //////////////////////////////////////////////////////////////////
      {
-	  OD.connect("scott", "tiger", "asp");
+	  OD->connect("scott", "tiger", "asp");
 	  db::oracle::lob::LocatorPtr lp;
-	  lp = OD.make_locator();
+	  lp = OD->make_locator();
 	  auto ri29 = lp->make_temp_clob();
 	  std::cerr << "lp->make_temp_clob(): " << ri29.string() << std::endl;
 	  auto ri30 = lp->openRW();
@@ -452,27 +470,27 @@ SELECT BLOB FROM BLOBER_TEST WHERE ID = 4
 	  String s200(R"(
 INSERT INTO CLOBER_TEST (ID, CLOB) VALUES (5, :aa)
 )");
-	  auto stmt200 = OD.prepare(s200);
+	  auto stmt200 = OD->prepare(s200);
 	  db::oracle::lob::ClobBindValue ibv200(lp);
 	  auto ri200 = stmt200->bind("aa", ibv200);
 	  std::cerr << "stmt200->bind(\"aa\", ibv200): " << ri200.string() << std::endl;
 	  auto ri201 = stmt200->execute();
 	  std::cerr << "stmt200->execute(): " << ri201.string() << std::endl;
-	  OD.commit();
-	  OD.disconnect();
+	  OD->commit();
+	  OD->disconnect();
      }
      //////////////////////////////////////////////////////////////////
 
      // #15
      //////////////////////////////////////////////////////////////////
      {
-	  OD.connect("scott", "tiger", "asp");
+	  OD->connect("scott", "tiger", "asp");
 	  String s200(R"(
 SELECT CLOB FROM CLOBER_TEST WHERE ID = 5
 )");
-	  auto stmt200 = OD.prepare(s200);
+	  auto stmt200 = OD->prepare(s200);
 	  db::oracle::lob::LocatorPtr lp;
-	  lp = OD.make_locator();
+	  lp = OD->make_locator();
 	  db::oracle::lob::ClobQueryValue CLOB(lp);
 	  auto ri14 = stmt200->define(1, CLOB);
 	  std::cerr << "stmt200->define(1): " <<
@@ -507,20 +525,20 @@ SELECT CLOB FROM CLOBER_TEST WHERE ID = 5
 	       std::cerr << "CLOB.getIndicator() BAD --> ERROR!" << std::endl;
 	  }
 	  lp->close();
-	  OD.disconnect();
+	  OD->disconnect();
      }
      //////////////////////////////////////////////////////////////////
 
      // #16
      //////////////////////////////////////////////////////////////////
      {
-	  OD.connect("scott", "tiger", "asp");
+	  OD->connect("scott", "tiger", "asp");
 	  String s200(R"(
 SELECT CLOB FROM CLOBER_TEST WHERE ID = 3
 )");
-	  auto stmt200 = OD.prepare(s200);
+	  auto stmt200 = OD->prepare(s200);
 	  db::oracle::lob::LocatorPtr lp;
-	  lp = OD.make_locator();
+	  lp = OD->make_locator();
 	  db::oracle::lob::ClobQueryValue CLOB(lp);
 	  auto ri14 = stmt200->define(1, CLOB);
 	  std::cerr << "stmt200->define(1): " <<
@@ -539,16 +557,16 @@ SELECT CLOB FROM CLOBER_TEST WHERE ID = 3
 	       }
 	  }
 	  lp->close();
-	  OD.disconnect();
+	  OD->disconnect();
      }
      //////////////////////////////////////////////////////////////////
 
      // #17
      //////////////////////////////////////////////////////////////////
      {
-	  OD.connect("scott", "tiger", "asp");
+	  OD->connect("scott", "tiger", "asp");
 	  db::oracle::lob::LocatorPtr lp;
-	  lp = OD.make_locator();
+	  lp = OD->make_locator();
 	  auto ri29 = lp->make_temp_clob();
 	  std::cerr << "lp->make_temp_clob(): " << ri29.string() << std::endl;
 	  auto ri30 = lp->openRW();
@@ -572,27 +590,27 @@ SELECT CLOB FROM CLOBER_TEST WHERE ID = 3
 	  String s200(R"(
 INSERT INTO CLOBER_TEST (ID, CLOB) VALUES (6, :aa)
 )");
-	  auto stmt200 = OD.prepare(s200);
+	  auto stmt200 = OD->prepare(s200);
 	  db::oracle::lob::ClobBindValue ibv200(lp);
 	  auto ri200 = stmt200->bind("aa", ibv200);
 	  std::cerr << "stmt200->bind(\"aa\", ibv200): " << ri200.string() << std::endl;
 	  auto ri201 = stmt200->execute();
 	  std::cerr << "stmt200->execute(): " << ri201.string() << std::endl;
-	  OD.commit();
-	  OD.disconnect();
+	  OD->commit();
+	  OD->disconnect();
      }
      //////////////////////////////////////////////////////////////////
 
      // #18
      //////////////////////////////////////////////////////////////////
      {
-	  OD.connect("scott", "tiger", "asp");
+	  OD->connect("scott", "tiger", "asp");
 	  String s200(R"(
 SELECT CLOB FROM CLOBER_TEST WHERE ID = 6
 )");
-	  auto stmt200 = OD.prepare(s200);
+	  auto stmt200 = OD->prepare(s200);
 	  db::oracle::lob::LocatorPtr lp;
-	  lp = OD.make_locator();
+	  lp = OD->make_locator();
 	  db::oracle::lob::ClobQueryValue CLOB(lp);
 	  auto ri14 = stmt200->define(1, CLOB);
 	  std::cerr << "stmt200->define(1): " <<
@@ -627,16 +645,16 @@ SELECT CLOB FROM CLOBER_TEST WHERE ID = 6
 	       std::cerr << "CLOB.getIndicator() BAD --> ERROR!" << std::endl;
 	  }
 	  lp->close();
-	  OD.disconnect();
+	  OD->disconnect();
      }
      //////////////////////////////////////////////////////////////////
 
      // #18
      //////////////////////////////////////////////////////////////////
      {
-	  OD.connect("scott", "tiger", "asp");
+	  OD->connect("scott", "tiger", "asp");
 	  db::oracle::lob::LocatorPtr lp;
-	  lp = OD.make_locator();
+	  lp = OD->make_locator();
 	  auto ri29 = lp->make_temp_clob();
 	  std::cerr << "lp->make_temp_clob(): " << ri29.string() << std::endl;
 	  auto ri30 = lp->openRW();
@@ -660,27 +678,27 @@ SELECT CLOB FROM CLOBER_TEST WHERE ID = 6
 	  String s200(R"(
 INSERT INTO CLOBER_TEST (ID, CLOB) VALUES (7, :aa)
 )");
-	  auto stmt200 = OD.prepare(s200);
+	  auto stmt200 = OD->prepare(s200);
 	  db::oracle::lob::ClobBindValue ibv200(lp);
 	  auto ri200 = stmt200->bind("aa", ibv200);
 	  std::cerr << "stmt200->bind(\"aa\", ibv200): " << ri200.string() << std::endl;
 	  auto ri201 = stmt200->execute();
 	  std::cerr << "stmt200->execute(): " << ri201.string() << std::endl;
-	  OD.commit();
-	  OD.disconnect();
+	  OD->commit();
+	  OD->disconnect();
      }
      //////////////////////////////////////////////////////////////////
 
      // #19
      //////////////////////////////////////////////////////////////////
      {
-	  OD.connect("scott", "tiger", "asp");
+	  OD->connect("scott", "tiger", "asp");
 	  String s200(R"(
 SELECT CLOB FROM CLOBER_TEST WHERE ID = 7
 )");
-	  auto stmt200 = OD.prepare(s200);
+	  auto stmt200 = OD->prepare(s200);
 	  db::oracle::lob::LocatorPtr lp;
-	  lp = OD.make_locator();
+	  lp = OD->make_locator();
 	  db::oracle::lob::ClobQueryValue CLOB(lp);
 	  auto ri14 = stmt200->define(1, CLOB);
 	  std::cerr << "stmt200->define(1): " <<
@@ -715,7 +733,7 @@ SELECT CLOB FROM CLOBER_TEST WHERE ID = 7
 	       std::cerr << "CLOB.getIndicator() BAD --> ERROR!" << std::endl;
 	  }
 	  lp->close();
-	  OD.disconnect();
+	  OD->disconnect();
      }
      //////////////////////////////////////////////////////////////////
 
@@ -730,5 +748,6 @@ SELECT CLOB FROM CLOBER_TEST WHERE ID = 7
      system("md5sum src/tests/Text_out.txt");
      system("md5sum src/tests/history.txt");
      system("md5sum src/tests/history_out.txt");
+     delete OD;
      return 0;
 }
