@@ -15,7 +15,8 @@ db::oracle::lob::BindValue::BindValue
  const LocatorPtr l):
      oracle::BindValue(n, t),
      buff(nullptr),
-     s(0)
+     s(0),
+     locator(l)
 {
      load_buff(l);
      return;

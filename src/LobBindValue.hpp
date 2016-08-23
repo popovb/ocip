@@ -35,6 +35,7 @@ namespace db {
 	       private:
 		    void** buff;
 		    size_t s;
+		    const LocatorPtr locator;
 
 		    void load_buff(const LocatorPtr);
 	       };
