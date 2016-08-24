@@ -48,6 +48,35 @@ INSERT INTO DEPT (DEPTNO, DNAME, LOC) VALUES (50, 'DEV', 'MOSCOW')
      std::cerr << "rollback: " << ri2.string() << std::endl;
      //////////////////////////////////////////////////////////////////
 
+     // #02.5
+     //////////////////////////////////////////////////////////////////
+     s1 = (R"(
+UPDATE DEPT SET LOC = 'LENINGRAD' WHERE DEPTNO = 150
+)");
+     StatementPtr stmte;
+     try {
+	  stmte = OD->prepare(s1);
+
+     } catch (Error& e) {
+
+	  std::cerr << e.what() << std::endl;
+	  exit(1);
+     }
+
+     auto ri1e = stmte->execute();
+     std::cerr << "stmte->execute(): "   << ri1e.string() << std::endl;
+
+     size_t c;
+     auto RR = stmte->row_count(c);
+     if (RR) {
+
+	  std::cerr << "row_count(): " << c << std::endl;
+     }
+
+     auto ri2e = OD->rollback();
+     std::cerr << "rollback: " << ri2e.string() << std::endl;
+     //////////////////////////////////////////////////////////////////
+     
      // #03
      //////////////////////////////////////////////////////////////////
      String s2(R"(
@@ -93,7 +122,14 @@ INSERT INTO DEPT (DEPTNO, DNAME, LOC) VALUES (:1, :2, :3)
 
      auto ri12 = stmt2->execute();
      std::cerr << "stmt2->execute(): " << ri12.string() << std::endl;
+     ///
+     size_t c2;
+     auto RR2 = stmt2->row_count(c2);
+     if (RR2) {
 
+	  std::cerr << "row_count(): " << c2 << std::endl;
+     }
+     ///
      String s3(R"(
 DELETE FROM DEPT WHERE DEPTNO >= 50
  )");
