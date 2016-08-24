@@ -13,13 +13,14 @@
 
 //////////////////////////////////////////////////////////////////
 db::oracle::Statement::Statement(const Environment& e,
-					     const StatementString s):
+				 const StatementString s):
      oe(e),
      stmt(nullptr),
      binder(e.getError()),
      definer(e.getError()),
      fetcher(e.getError()),
-     executor(e)
+     executor(e),
+     counter(e.getError())
 {
      init_stmt();
      prepare(s);
@@ -103,5 +104,11 @@ db::oracle::ReturnInfo
 db::oracle::Statement::fetch() const {
 
      return fetcher.fetch(*stmt);
+}
+
+db::oracle::ReturnInfo
+db::oracle::Statement::row_count(size_t& s) const {
+
+     return counter.count(*stmt, s);
 }
 //////////////////////////////////////////////////////////////////

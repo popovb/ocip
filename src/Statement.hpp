@@ -16,6 +16,7 @@
 #include "Definer.hpp"
 #include "Fetcher.hpp"
 #include "Executor.hpp"
+#include "RowCounter.hpp"
 #include "LobBindValue.hpp"
 #include "String.hpp"
 #include <memory>
@@ -49,13 +50,17 @@ namespace db {
 
 	       ReturnInfo fetch() const;
 
+	       ReturnInfo row_count(size_t&) const;
+
 	  private:
 	       const Environment& oe;
 	       oci::handle::Stmt* stmt;
+
 	       Binder binder;
 	       Definer definer;
 	       Fetcher fetcher;
 	       Executor executor;
+	       RowCounter counter;
 
 	       void init_stmt();
 	       void destroy_stmt() const;
