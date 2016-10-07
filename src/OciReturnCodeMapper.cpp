@@ -118,6 +118,12 @@ void db::oracle::oci::ReturnCodeMapper::is_it_success() {
 	  return;
      }
 
+     if (ret == OCI_NO_DATA) {
+
+	  success = true;
+	  return;
+     }
+
      success = false;
 }
 //////////////////////////////////////////////////////////////////
