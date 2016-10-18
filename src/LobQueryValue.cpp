@@ -12,7 +12,8 @@
 db::oracle::lob::QueryValue::QueryValue
 (const oci::Type t, const LocatorPtr l):
      oracle::QueryValue(t),
-     qb(l)
+     qb(l),
+     locator(l)
 {
      return;
 }
@@ -30,6 +31,12 @@ db::oracle::Buffer& db::oracle::lob::QueryValue::getBuffer() {
 const db::oracle::Buffer& db::oracle::lob::QueryValue::getBuffer() const {
 
      return qb;
+}
+
+db::oracle::lob::LocatorPtr
+db::oracle::lob::QueryValue::getLocator() const {
+
+     return locator;
 }
 //////////////////////////////////////////////////////////////////
 
