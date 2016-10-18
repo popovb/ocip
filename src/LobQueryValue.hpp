@@ -32,8 +32,11 @@ namespace db {
 		    virtual const oracle::Buffer&
 		    getBuffer() const override;
 
+		    LocatorPtr getLocator() const;
+
 	       private:
 		    Buffer qb;
+		    const LocatorPtr locator;
 	       };
 //////////////////////////////////////////////////////////////////
 
